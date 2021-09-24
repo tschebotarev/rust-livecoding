@@ -1,34 +1,40 @@
 use rand::*;
 use std::{thread, time::Duration};
-
+use std::iter::Iterator;
 
 const N: usize = 200_000_000;
 
 
-fn sum_up(v: &Vec<u64>) -> u64 {
+// 
+fn sum_up(it: impl Iterator<Item=u64>) -> u64 {
     let mut s = 0;
-    for i in 0..N {
-        s += v[i]
+    for x in it {
+        s += x;
     }
-    thread::sleep(Duration::from_millis(30000));
+
     s
+}
+
+fn gen_random(n: usize) -> impl Iterator<Item=u64> {
+    let mut rng = thread_rng();
+    let res = (0..N).map(move|_i|rng.gen_range(0..=1000));
+    let tmp = rng.gen_range(0..=1000);
+    res
 }
 
 fn main() {
     let mut rng = thread_rng();
     // Генерация
-    let mut v = Vec::<u64>::new();
-    for _i in 0..N {
-        v.push(rng.gen_range(0..=1000));
-    }
-    // println!("{:?}", v);
+    // let mut v = Vec::<u64>::new();
+
+    let randoms = (0..N).map(|_i|rng.gen_range(0..=1000));
 
     // Подсчёт
-    let s = sum_up(&v);
+    let s = sum_up(randoms);
 
     println!("{}", s);
 
     // thread::sleep(Duration::from_millis(30000));
-    println!("{}", v[N - 1]);
+    // println!("{}", v[N - 1]);
 
 }

@@ -11,15 +11,17 @@ fn sum_up(it: impl Iterator<Item=u64>) -> u64 {
     for x in it {
         s += x;
     }
-
     s
+}
+
+// Максимальное число среди тех, что делятся на 9
+fn my_max(it: impl Iterator<Item=u64>) -> u64 {
+    0
 }
 
 fn gen_random(n: usize) -> impl Iterator<Item=u64> {
     let mut rng = thread_rng();
-    let res = (0..N).map(move|_i|rng.gen_range(0..=1000));
-    let tmp = rng.gen_range(0..=1000);
-    res
+    (0..N).map(move|_i|rng.gen_range(0..=1000))
 }
 
 fn main() {
@@ -30,9 +32,10 @@ fn main() {
     let randoms = (0..N).map(|_i|rng.gen_range(0..=1000));
 
     // Подсчёт
-    let s = sum_up(randoms);
+    let m = my_max(randoms);
 
-    println!("{}", s);
+
+    println!("{}", m);
 
     // thread::sleep(Duration::from_millis(30000));
     // println!("{}", v[N - 1]);

@@ -29,3 +29,13 @@ fn main() {
         let s = s.unwrap();
     }
 }
+
+#[test]
+fn test_connected() {
+    assert!(are_connected("мама", "сама"))
+}
+
+#[test]
+fn test_not_connected() {
+    assert!(!are_connected("мама", "папа"))
+}

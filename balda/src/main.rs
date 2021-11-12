@@ -1,37 +1,69 @@
 use std::collections::btree_set::Range;
 use std::collections::{BTreeSet, HashSet};
 use std::fs::File;
-use std::io::{self, BufRead, stdin};
-use std::ops::Bound::Included;
+use std::io::{self, stdin, BufRead};
 use std::path::Path;
 
 fn get_all_by_prefix(dict: &BTreeSet<String>, prefix: &str) -> Vec<String> {
+    // WHERE S like 'prefix%'
+    // WHERE S >= 'prefix' ans S < 'prefixяяяяяяяяяяя'
+    //
     let next = format!("{}я", prefix);
-    let range: Range<String> = dict.range((Included(prefix.to_string()), Included(next)));
+    let range: Range<String> = dict.range(prefix.to_string()..=next);
+    // (0..10)
+    // (Included(0), Excluded(10))
 
     range.into_iter().cloned().collect()
 }
 
-fn is_winner(dict: &BTreeSet<String>, prefix: &str) -> Option<String> {
+enum PositionEstimation {
+    BadPosition,
+    AlreadyWin,
+    AlreadyLost(String),
+    // (какой_ход_делаю, потенциальная_длина_партии)
+    CannotWin(String, usize),
+    // (какой_ход_делаю, потенциальная_длина_партии)
+    CanWin(String, usize),
+}
+
+fn is_winner(dict: &BTreeSet<String>, prefix: &str) -> PositionEstimation {
     let layer = get_all_by_prefix(dict, prefix);
     if layer.is_empty() {
-        return Some(format!("!{} -- No such word!", prefix));
+        return PositionEstimation::BadPosition;
     }
     if layer.iter().any(|s| s.as_str() == prefix) {
-        return Some(format!("{} -- in dictionary!", prefix));
+        return PositionEstimation::AlreadyWin;
     }
 
     let pos = prefix.len();
-    let next_letter: HashSet<char> = layer.iter().map(|s| {
-        s.chars().nth(pos).unwrap()
-    }).collect();
+    let next_letter: HashSet<char> = layer.iter().map(|s| s.chars().nth(pos).unwrap()).collect();
+
+    let mut longest_lose = ("".to_string(), 0);
     for c in next_letter {
         let my_move = format!("{}{}", prefix, c);
-        if is_winner(dict, &my_move).is_none() {
-            return Some(my_move);
+        match is_winner(dict, &my_move) {
+            PositionEstimation::BadPosition => panic!(),
+            PositionEstimation::AlreadyWin => {}
+            PositionEstimation::CannotWin(_, n) => {
+                return PositionEstimation::CanWin(my_move, n + 1);
+            }
+            PositionEstimation::AlreadyLost(_) => {
+                return PositionEstimation::CanWin(my_move, 1);
+            }
+            PositionEstimation::CanWin(_, n) => {
+                if n + 1 > longest_lose.1 {
+                    longest_lose = (my_move.to_string(), n + 1);
+                }
+            }
         }
     }
-    None
+    // let longest = layer.iter().max_by_key(|&s| s.len()).unwrap().clone();
+    // let m = longest[..pos + 1].to_string();
+    if layer.contains(&longest_lose.0) {
+        PositionEstimation::AlreadyLost(longest_lose.0)
+    } else {
+        PositionEstimation::CannotWin(longest_lose.0, longest_lose.1)
+    }
 }
 
 fn main() {
@@ -43,7 +75,9 @@ fn main() {
     println!("{}", v.len());
 
     let v: Vec<String> = v.into_iter().filter_map(|x| x.ok()).collect();
-    let m: BTreeSet<String> = v.into_iter().filter(|s|s.len() > 1).collect();
+    let m: BTreeSet<String> = v.into_iter().filter(|s| s.len() > 1).collect();
+
+    is_winner(&m, "bhuta");
 
     let mut current: String = "".to_string();
     loop {
@@ -54,14 +88,22 @@ fn main() {
             println!("{:?}", get_all_by_prefix(&m, &current));
         } else if input.len() != current.len() + 1 || input[0..current.len()] != current {
             println!("Cheater!!");
-        } else if let Some(m) = is_winner(&m, &input) {
-            println!(">{}", m);
-            if &m[0..1] != "!" {
-                current = m;
-            }
         } else {
-            println!("Surrender (( Start next word");
-            current = "".to_string();
+            match is_winner(&m, &input) {
+                PositionEstimation::CanWin(m, _) | PositionEstimation::CannotWin(m, _) => {
+                    println!(">{}", m);
+                    current = m;
+                }
+                PositionEstimation::AlreadyWin | PositionEstimation::BadPosition => {
+                    println!("I won! Start next word");
+                    current = "".to_string();
+                }
+                PositionEstimation::AlreadyLost(m) => {
+                    println!(">{}", m);
+                    println!("I lose (( Start next word");
+                    current = "".to_string();
+                }
+            }
         }
     }
 }

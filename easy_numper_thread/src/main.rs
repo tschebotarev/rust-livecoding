@@ -30,11 +30,18 @@ fn next_easy_number(mut n:u32) -> u32 {
     }
 }
 
-fn update_stek(array: &mut Vec<u32>) {
+/*fn update_stek(array: &mut Vec<u32>) {
     for i in 0..9 {
         array[i] = array[i+1];
     } 
     array[9] = next_easy_number(array[8]);
+}*/
+
+fn add_to_stek(array: &mut Vec<u32>, n:u32) {
+    for i in 0..9 {
+        array[i] = array[i+1];
+    } 
+    array[9] = n;
 }
 
 fn translate_vec_to_string(array: Vec<u32>) -> String {
@@ -57,12 +64,18 @@ fn main() {
     // генерируем числа
     let sender = thread::spawn(move || {
         let mut array:Vec<u32> = vec![1,2,3,5,7,11,13,17,19,23];
+        let mut last_number:u32 = 23;
         let mut time = millis();
+        let mut people_request = "".to_string();
         loop {
             // продумываем новое простое число и все это пишем в "стек"
-            update_stek(&mut array);
+            last_number = next_easy_number(last_number);
+            if last_number.to_string().contains(&people_request) {
+                add_to_stek(&mut array, last_number);
+            }
+            //update_stek(&mut array);
             
-            // проверяем, если в течении 10 милисекунд обнарживаем в канале "запрос", то принимаем
+            // проверяем, если в течении 10 милисекунд обнарживаем в канале "запрос", то принимаем, а если нет, то "nothing"
             let t = rx1.recv_timeout(time::Duration::from_millis(10));
             //let test = rx1.recv().expect("Unable to receive from channel");
             let test = match t {
@@ -71,15 +84,16 @@ fn main() {
             };
             
             // действия с данными из канала (от канала people)
-            if test=="".to_string() {
-                tx.send(translate_vec_to_string(array.clone()).to_owned()).expect("Unable to send on channel");
-            }
-            else if test=="e".to_string() { 
-                break;
+            if test!="nothing".to_string() {
+                if test=="e".to_string() { break; }
+                else {
+                    people_request = test;
+                    tx.send(translate_vec_to_string(array.clone()).to_owned()).expect("Unable to send on channel");
+                }
             }
 
             // раз в секунду выводить вычисленные значения
-            if time+1.0<=millis() {
+            if time+2.0<=millis() {
                 time = millis();
                 println!("* {:?}", array);
             }

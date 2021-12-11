@@ -4,8 +4,18 @@ use std::sync::mpsc::channel;
 //use std::time; // thread::sleep(time::Duration::from_millis(1000));
 use std::time;
 
+/*
+Программа для поиска простых чисел
+программа каждые 2 секунды выводит 10 последних найденных чисел, подходящих условию, введенного пользователем (в начале программы "", т.е. все простые числа)
+(т.е. если ввести "23", то прога будет добавлять в "стек" чисел только числа, содержащие эту комбинацию, старые числа из стека не удаляются, а заменяются новыми,
+поэтому сразу после ввода нового условия могут остаться старые, неподходящие числа, и если ввести в условие "wer"(невозможное условие), то в стек не будет ничего 
+попадать, т.к под это условие ничего не подходит)
+пользователь может ввести условие в любой момент
+при вводе "e" программа завершится
+*/
+
 use std::time::{SystemTime, UNIX_EPOCH}; // for time testing
-pub fn millis() -> f64 { // https://qastack.ru/programming/26593387/how-can-i-get-the-current-time-in-milliseconds
+pub fn millis() -> f64 { 
     (SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -53,6 +63,14 @@ fn translate_vec_to_string(array: Vec<u32>) -> String {
     answer
 }
 
+/*fn string_is_number(s:String) -> bool {
+    for i in s.chars() {
+        print!("{} ",i);
+    }
+    println!();
+    true
+}*/
+
 fn main() {
     //let mut array:Vec<u32> = vec![1,2,3,5,7,11,13,17,19,23];
     //for _ in 0..3 { update_stek(&mut array); }
@@ -71,6 +89,7 @@ fn main() {
             // продумываем новое простое число и все это пишем в "стек"
             last_number = next_easy_number(last_number);
             if last_number.to_string().contains(&people_request) {
+                //println!("={}",last_number);
                 add_to_stek(&mut array, last_number);
             }
             //update_stek(&mut array);
@@ -87,12 +106,13 @@ fn main() {
             if test!="nothing".to_string() {
                 if test=="e".to_string() { break; }
                 else {
+                    //if string_is_number(test.clone())
                     people_request = test;
                     tx.send(translate_vec_to_string(array.clone()).to_owned()).expect("Unable to send on channel");
                 }
             }
 
-            // раз в секунду выводить вычисленные значения
+            // раз в 2 секунды выводить вычисленные значения
             if time+2.0<=millis() {
                 time = millis();
                 println!("* {:?}", array);

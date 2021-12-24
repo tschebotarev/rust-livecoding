@@ -1,119 +1,145 @@
 use std::{collections::HashMap, hash::Hash};
 
-struct Entry<Key, Value> {
+use rand::{prelude::ThreadRng, thread_rng, Rng};
+
+#[derive(Debug)]
+struct Entry<Key: Eq + Hash, Value> {
     key: Key,
     value: Value,
-    next: Option<usize>,
-    prev: Option<usize>,
+    goodness: u32,
+    generation: u32,
 }
+
+// abc   def   ghi
+//  10    10    7
+//              ^
 
 struct Cache<Key: Eq + Hash, Value> {
-    n: usize,
-
-    // m: HashMap<Key, ???>,
-    // l: List<Entry>,
+    capacity: usize,
+    hand: usize,
+    current_generation: u32,
+    // time: usize,
     m: HashMap<Key, usize>,
-    v: Vec<Entry<Key, Value>>,
-    list_head: Option<usize>,
-    list_tail: Option<usize>,
+    clock: Vec<Entry<Key, Value>>,
+    // rng: ThreadRng,
 }
 
-// LFU least frequently used
-// LRU last recently used
-
-// [abc] [jkl] [ghi] [def] [mno]
-// [ghi] -> [abc] [jkl]--> <--[def] [mno]
-// [abc] [jkl] [ghi] [def] x[mno]x
-
-//
-// [abc] [jkl] [ghi] [def] [mno]
-//
-
-// id Val Prev Next
-// 0 (abc, NULL, 4)
-// 1 (def, 2, 3)
-// 2 (ghi, 4, 1)
-// 3 (mno, 1, NULL)
-// 4 (jkl, 0, 2)
+const STARTING_GOODNESS: u32 = 10;
+const ROUND_PENALTY: u32 = 1;
 
 impl<K, V> Cache<K, V>
 where
     K: Eq + Hash + Clone,
     V: Clone,
 {
-    pub fn new(n: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         Cache {
-            n,
-            m: HashMap::with_capacity(n),
-            v: Vec::with_capacity(n),
-            list_head: None,
-            list_tail: None,
+            capacity,
+            hand: 0,
+            m: HashMap::with_capacity(capacity),
+            clock: vec![],
+            // rng: thread_rng(),
+            current_generation: 1,
         }
-    }
-
-    fn move_to_head(&mut self, pos: usize) {
-        if let Some(old_prev_pos) = self.v[pos].prev {
-            self.v[old_prev_pos].prev = self.v[pos].next;
-        } else {
-            // Он уже первый
-            return;
-        }
-        if let Some(old_next_pos) = self.v[pos].next {
-            self.v[old_next_pos].prev = self.v[pos].prev;
-        } else {
-            self.list_tail = self.v[pos].prev;
-        }
-
-        self.v[pos].next = self.list_head;
-        self.v[pos].prev = None;
-        self.list_head = Some(pos);
     }
 
     pub fn insert(&mut self, key: K, value: V) {
-        if self.v.len() >= self.n {
-            todo!()
-        } else if let Some(&pos) = self.m.get(&key) {
-            self.v[pos].value = value;
-            self.move_to_head(pos);
-        } else {
-            let new_pos = self.v.len();
-
-            if let Some(head) = self.list_head {
-                self.v[head].prev = Some(new_pos);
-            } else {
-                self.list_tail = Some(new_pos);
-            }
-
-            self.v.push(Entry {
+        if self.m.len() < self.capacity {
+            self.clock.push(Entry {
                 key: key.clone(),
                 value,
-                next: self.list_head,
-                prev: None,
+                goodness: STARTING_GOODNESS,
+                generation: 0,
             });
-            self.list_head = Some(new_pos);
-            assert!(self.m.insert(key, new_pos).is_none())
+            self.m.insert(key, self.clock.len() - 1);
+        } else {
+            let victim = self.find_victim();
+            assert!(self.m.remove(&self.clock[victim].key).is_some());
+            self.clock[victim] = Entry {
+                key: key.clone(),
+                value,
+                goodness: STARTING_GOODNESS,
+                generation: 0,
+            };
+            self.m.insert(key, victim);
         }
     }
 
-    pub fn get(&self, key: &K) -> Option<V> {
-        self.m.get(key).map(|&pos| self.v[pos].value.clone())
+    fn find_victim(&mut self) -> usize {
+        // self.time += 1;
+        // return self.rng.gen_range(0..self.capacity);
+
+        let mut threshold = 1;
+        loop {
+            self.hand += 1;
+            if self.hand >= self.capacity {
+                self.hand = 0;
+            }
+
+            if self.clock[self.hand].generation == self.current_generation {
+                continue;
+            }
+            if self.clock[self.hand].goodness < threshold {
+                return self.hand;
+            } else {
+                self.clock[self.hand].goodness =
+                    self.clock[self.hand].goodness.saturating_sub(ROUND_PENALTY);
+            }
+            threshold += 1;
+        }
+    }
+
+    pub fn get_mut(&mut self, key: &K) -> Option<V> {
+        self.m.get(key).map(|&pos| {
+            let element = &mut self.clock[pos];
+            element.goodness += 1;
+            element.value.clone()
+        })
+    }
+
+    pub fn print_all(&self)
+    where
+        K: std::fmt::Debug,
+        V: std::fmt::Debug,
+    {
+        self.clock.iter().for_each(|el| println!("{:?}", el))
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Payload {
     s: String,
 }
 
-fn main() {
-    let mut cache = Cache::<_, Payload>::new(1000);
-    cache.insert(
-        3u32,
-        Payload {
-            s: "mom".to_string(),
-        },
-    );
-    assert!(cache.get(&3).unwrap().s == "mom");
+const N: usize = 100;
 
-    println!("Hello, world!");
+fn main() {
+    let mut cache = Cache::<_, Payload>::new(N);
+    let mut rng = thread_rng();
+
+    let mut miss_count = 0;
+    let m = 3 * N as u32;
+    for _ in 0..N * 10000 {
+        let x_final;
+        loop {
+            let r = rng.gen_range(0..m * m);
+            let (x, y) = (r / m as u32, r % m);
+            if x <= y {
+                x_final = x;
+                break;
+            }
+        }
+        if cache.get_mut(&x_final).is_none() {
+            miss_count += 1;
+            cache.insert(
+                x_final,
+                Payload {
+                    s: x_final.to_string(),
+                },
+            );
+        }
+    }
+
+    cache.print_all();
+    println!("miss={}", miss_count);
 }

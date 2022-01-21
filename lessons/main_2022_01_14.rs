@@ -1,4 +1,6 @@
 // https://leetcode.com/problems/longest-increasing-path-in-a-matrix/
+// ДЗ:
+// https://leetcode.com/problems/maximal-rectangle/
 
 use rand::Rng;
 

@@ -1,14 +1,11 @@
-// https://leetcode.com/problems/longest-increasing-path-in-a-matrix/
-// ДЗ:
-// https://leetcode.com/problems/maximal-rectangle/
+// сортировка малых чисел
 
-use rand::Rng;
 
 fn main() {
     println!("answer: {}",operate(generator(3)));
 }
 
-fn generator(n: i32) -> Vec<Vec<i32>> {
+/*fn generator(n: i32) -> Vec<Vec<i32>> {
     let mut rng = rand::thread_rng();
     let mut a:Vec<Vec<i32>> = vec![];
     for _y in 0..n {
@@ -66,4 +63,4 @@ fn test(matrix: &Vec<Vec<i32>>, array:&mut Vec<Vec<i32>>, coo: (usize,usize), ol
 
     array[coo.1][coo.0] = b+1;
     b+1
-}
+}*/

@@ -8,8 +8,36 @@ https://leetcode.com/problems/interleaving-string/
 https://leetcode.com/problems/maximal-rectangle/
 */
 
+fn ultra_sort(array:&mut Vec<u32>) {
+    for a in 1..2 {
+        let array_save = array.clone();
+        let mut test:Vec<u32> = vec![0;10];
+        for i in 0..array.len() {
+            test[(array[i]%10) as usize] += 1;
+            array[i] = 0;
+        }
+        println!("{:?}",test);
+        let mut place:Vec<u32> = vec![0;10];
+        place[0] = test[0];
+        for i in 1..10 {
+            place[i] = place[i-1] + test[i-1];
+        }
+        println!("{:?}",place);
+        for i in 0..array.len() {
+            //let number = ((array_save[i]%(10_u32.pow(a)))%(10_u32.pow(a-1))) as usize;
+            let number = (array_save[i]%10) as usize;
+            array[place[number] as usize] = array_save[i];
+            place[number] += 1;
+        }
+    }
+}
+
 fn main() {
     //println!("answer: {}",operate(generator(3)));
+    let mut array = vec![12,23,24,17,36,56,32,11];
+    println!("basic:  {:?}", array);
+    ultra_sort(&mut array);
+    println!("answer: {:?}", array);
 }
 
 

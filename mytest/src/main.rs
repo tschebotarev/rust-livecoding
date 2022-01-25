@@ -9,11 +9,12 @@ https://leetcode.com/problems/maximal-rectangle/
 */
 
 fn ultra_sort(array:&mut Vec<u32>) {
-    for a in 1..2 {
+    for a in 1..3 {
         let array_save = array.clone();
         let mut test:Vec<u32> = vec![0;10];
         for i in 0..array.len() {
-            test[(array[i]%10) as usize] += 1;
+            let number = ((array_save[i]%(10_u32.pow(a)))/(10_u32.pow(a-1))) as usize;
+            test[number] += 1;
             array[i] = 0;
         }
         println!("{:?}",test);
@@ -24,8 +25,9 @@ fn ultra_sort(array:&mut Vec<u32>) {
         }
         println!("{:?}",place);
         for i in 0..array.len() {
-            //let number = ((array_save[i]%(10_u32.pow(a)))%(10_u32.pow(a-1))) as usize;
-            let number = (array_save[i]%10) as usize;
+            let number = ((array_save[i]%(10_u32.pow(a)))/(10_u32.pow(a-1))) as usize;
+            //let number = (array_save[i]%10) as usize;
+            println!("{} {} {}",i,array_save[i],number);
             array[place[number] as usize] = array_save[i];
             place[number] += 1;
         }

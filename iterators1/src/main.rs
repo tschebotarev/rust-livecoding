@@ -10,12 +10,14 @@ use file::read_file;
 
 const N: usize = 200_000; // _000
 
+
+
 fn main() {
 
     let a = read_file();
     for i in a { 
         //println!("{:?}",i); 
-        let s = my_max(i.iter());
+        let s = 0;//my_max(i.iter());
 
         println!("{:?}", s);
     }

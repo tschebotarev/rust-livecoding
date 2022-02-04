@@ -1,9 +1,12 @@
+#![feature(min_const_generics)]
+#![feature(generic_const_exprs)]
+#![feature(min_specialization)]
 use std::mem::size_of;
 
 use num::Integer;
 use rand::*;
 
-type DigitType = u16;
+type DigitType = u8;
 
 fn get_digit<T, const S: usize, const I: bool>(x: &T, step: usize) -> DigitType {
     let a: [DigitType; S] = unsafe { std::mem::transmute_copy(x) };
@@ -14,11 +17,12 @@ fn get_digit<T, const S: usize, const I: bool>(x: &T, step: usize) -> DigitType 
     }
 }
 
-fn radix_sort<T, const S: usize, const I: bool>(arr: &mut [T])
+fn radix_sort<T, const I: bool>(arr: &mut [T])
 where
     T: num::Integer + Default + Clone,
+    [(); size_of::<T>()]: Sized,
 {
-    let steps = S;
+    let steps = size_of::<T>() / size_of::<DigitType>();
     let mut tmp_arr = vec![T::default(); arr.len()];
     for step in 0..steps {
         let (a_from, a_to) = if step % 2 == 0 {
@@ -29,7 +33,7 @@ where
 
         let mut counts = vec![0usize; 1 << (size_of::<DigitType>() * 8)];
         for x in a_from {
-            let pos = get_digit::<T, S, I>(x, step) as usize;
+            let pos = get_digit::<T, { size_of::<T>() }, I>(x, step) as usize;
             counts[pos] += 1;
         }
 
@@ -40,7 +44,7 @@ where
         }
 
         for x in a_from {
-            let pos = get_digit::<T, S, I>(x, step) as usize;
+            let pos = get_digit::<T, { size_of::<T>() }, I>(x, step) as usize;
             a_to[begins[pos]] = x.clone();
             begins[pos] += 1;
         }
@@ -53,17 +57,17 @@ where
     }
 }
 
-const SS: usize = size_of::<u32>() / size_of::<DigitType>();
+// const SS: usize = size_of::<u32>() / size_of::<DigitType>();
 
 fn main() {
     let mut rng = thread_rng();
-    let mut v: Vec<_> = (0..1_00)
+    let mut v: Vec<_> = (0..1_000_000)
         .map(|_| rng.gen_range(i32::MIN..i32::MAX))
         .collect();
 
-    println!("{:?}\n***************************", v);
-    radix_sort::<_, SS, true>(&mut v[..]);
-    println!("{:?}\n", v);
+    // println!("{:?}\n***************************", v);
+    radix_sort::<_, true>(&mut v[..]);
+    // println!("{:?}\n", v);
     let w = v.clone();
     v.sort();
     assert_eq!(v, w);

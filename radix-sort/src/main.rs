@@ -1,12 +1,18 @@
 #![feature(min_const_generics)]
 #![feature(generic_const_exprs)]
+
 #![feature(min_specialization)]
 use std::mem::size_of;
 
-use num::Integer;
+use num::{Integer, Signed, Unsigned};
 use rand::*;
 
 type DigitType = u8;
+
+trait GetDigit {
+    fn get_digit()
+}
+
 
 fn get_digit<T, const S: usize, const I: bool>(x: &T, step: usize) -> DigitType {
     let a: [DigitType; S] = unsafe { std::mem::transmute_copy(x) };

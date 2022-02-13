@@ -1,3 +1,23 @@
+// cat_dog
+
+/*
+// main
+
+mod lib;
+use lib::{Database,Animal::*};
+
+fn main() {
+    let mut shelter = Database::default();
+    shelter.push(Cat("Barsik"));
+    shelter.push(Cat("Mursik"));
+    shelter.push(Dog("Mukhtar"));
+    println!("pop: {}",shelter.pop().unwrap());
+    println!("cat: {}",shelter.pop_cat().unwrap());
+    println!("dog: {}",shelter.pop_dog().unwrap());
+    shelter.clear();
+}
+*/
+
 pub enum Animal {
     Dog(&'static str),
     Cat(&'static str),
@@ -54,7 +74,7 @@ impl Database {
             Animal::Dog(a) => self.dog.push(add_data(a,self.counter)),
         }
     }
-    pub fn pop(&mut self) -> String {
+    pub fn pop(&mut self) -> Option<String> {
         let test_cat = self.cat.len()>0;
         let test_dog = self.dog.len()>0;
         if test_cat && test_dog {
@@ -72,25 +92,30 @@ impl Database {
             return self.pop_dog();
         }
     }
-    pub fn pop_cat(&mut self) -> String {
+    pub fn pop_cat(&mut self) -> Option<String> {
         if self.cat.len()>0 { 
             let t = self.cat[0].name.to_string();
             self.cat.remove(0);
-            return t;
+            return Some(t);
         }
         else {
-            return "EMPTY".to_string();
+            return Option::None;
         }
     }
-    pub fn pop_dog(&mut self) -> String {
+    pub fn pop_dog(&mut self) -> Option<String> {
         if self.dog.len()>0 { 
             let t = self.dog[0].name.to_string();
             self.dog.remove(0);
-            return t;
+            return Some(t);
         }
         else {
-            return "EMPTY".to_string();
+            return Option::None;
         }
+    }
+    pub fn clear(&mut self) {
+        self.cat.clear();
+        self.dog.clear();
+        self.counter = 0;
     }
 }
 

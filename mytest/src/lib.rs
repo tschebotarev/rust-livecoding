@@ -1,23 +1,3 @@
-// cat_dog
-
-/*
-// main
-
-mod lib;
-use lib::{Database,Animal::*};
-
-fn main() {
-    let mut shelter = Database::default();
-    shelter.push(Cat("Barsik"));
-    shelter.push(Cat("Mursik"));
-    shelter.push(Dog("Mukhtar"));
-    println!("pop: {}",shelter.pop().unwrap());
-    println!("cat: {}",shelter.pop_cat().unwrap());
-    println!("dog: {}",shelter.pop_dog().unwrap());
-    shelter.clear();
-}
-*/
-
 pub enum Animal {
     Dog(&'static str),
     Cat(&'static str),
@@ -118,11 +98,3 @@ impl Database {
         self.counter = 0;
     }
 }
-
-/*pub fn Cat(name: &str) -> (String, String) {
-    ("cat".to_string(), name)
-}
-
-pub fn Dog(name: &str) -> (String, String) {
-    ("dog".to_string(), name)
-}*/

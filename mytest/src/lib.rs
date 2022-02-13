@@ -55,18 +55,42 @@ impl Database {
         }
     }
     pub fn pop(&mut self) -> String {
-        "test".to_string()
+        let test_cat = self.cat.len()>0;
+        let test_dog = self.dog.len()>0;
+        if test_cat && test_dog {
+            if self.cat[0].age<self.dog[0].age { 
+                return self.pop_cat(); 
+            }
+            else { 
+                return self.pop_dog(); 
+            }
+        }
+        else if test_cat { 
+            return self.pop_cat();
+        }
+        else { 
+            return self.pop_dog();
+        }
     }
     pub fn pop_cat(&mut self) -> String {
-        //let t = self.cat[0]
-        let mut answer = "NO".to_string();
-        //if self.cat.len()>0 { 
-        //    Animal::Cat(a) => 
-        //}
-        answer
+        if self.cat.len()>0 { 
+            let t = self.cat[0].name.to_string();
+            self.cat.remove(0);
+            return t;
+        }
+        else {
+            return "EMPTY".to_string();
+        }
     }
     pub fn pop_dog(&mut self) -> String {
-        "test".to_string()
+        if self.dog.len()>0 { 
+            let t = self.dog[0].name.to_string();
+            self.dog.remove(0);
+            return t;
+        }
+        else {
+            return "EMPTY".to_string();
+        }
     }
 }
 

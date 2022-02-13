@@ -8,9 +8,9 @@ fn main() {
     shelter.push(Cat("Barsik"));
     shelter.push(Cat("Mursik"));
     shelter.push(Dog("Mukhtar"));
-    println!("pop: {};",shelter.pop());
-    println!("cat: {};",shelter.pop_cat());
-    println!("dog: {};",shelter.pop_dog());
+    println!("pop: {}",shelter.pop());
+    println!("cat: {}",shelter.pop_cat());
+    println!("dog: {}",shelter.pop_dog());
 }
 
 

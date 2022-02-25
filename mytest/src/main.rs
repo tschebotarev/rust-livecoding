@@ -3,7 +3,8 @@
 mod lib;
 use lib::{Database,Animal::*};
 
-use enum_iterator::IntoEnumIterator; // enum-iterator = "0.7.0"
+ // enum-iterator = "0.7.0"
+use enum_iterator::IntoEnumIterator;
 
 #[derive(Debug, Clone, IntoEnumIterator, PartialEq)]
 enum Day { 
@@ -11,7 +12,7 @@ enum Day {
     Tuesday, 
     Wednesday, 
     Thursday, 
-    Friday, 
+    Friday,                              
     Saturday, 
     Sunday,
 }

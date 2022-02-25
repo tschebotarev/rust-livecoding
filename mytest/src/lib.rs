@@ -32,6 +32,7 @@ pub enum Animal2 {
 //     }
 // }
 
+#[derive(Clone)]
 struct MyData {
     name: String,
     //name: T,
@@ -49,11 +50,7 @@ where T: IntoEnumIterator + PartialEq + Clone
 {
     fn default() -> Self {
         let name_list: Vec<T> = T::into_enum_iter().collect();
-        let mut data_list: Vec<Vec<MyData>> = vec![];       // просто через vec![vec![];Day::VARIANT_COUNT] не получилось(((
-        for _i in 0..T::VARIANT_COUNT {
-            data_list.push(vec![]);
-        }
-        println!("== {}",data_list.len());
+        let data_list: Vec<Vec<MyData>> = vec![vec![];T::VARIANT_COUNT]; 
         let counter = 0u32;
         Self {
             name_list,
@@ -68,6 +65,7 @@ where T: PartialEq
 {
     pub fn push(&mut self, data: T, name: &str) {
         self.counter+=1;
+        
         for i in 0..self.name_list.len() {
             if self.name_list[i]==data {
                 self.data_list[i].push(MyData{name:name.to_string(), age:self.counter});

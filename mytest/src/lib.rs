@@ -1,5 +1,13 @@
-#[derive(Clone, Copy, Hash, PartialEq, Eq)]
+
+use enum_iterator::IntoEnumIterator; // enum-iterator = "0.7.0"
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug, IntoEnumIterator)]
 pub enum Animal {
+    Dog(String),
+    Cat(String),
+}
+
+pub enum Animal2 {
     Dog(&'static str),
     Cat(&'static str),
 }
@@ -21,39 +29,47 @@ impl Animal {
     }
 }
 
-struct MyData {
-    name: Animal,
+struct MyData<T> {
+    name: T,
+    //name: T,
     age: u32,
 }
 
-pub struct Database {
-    cat: Vec<MyData>,
-    dog: Vec<MyData>,
+pub struct Database<T> {
+    name_list: Vec<T>,
+    data_list: Vec<Vec<MyData<T>>>,
     counter: u32,
 }
 
-impl Default for Database {
+impl<T> Default for Database<T> 
+where T: IntoEnumIterator + PartialEq
+{
     fn default() -> Self {
-        let cat:Vec<MyData> = vec![];
-        let dog:Vec<MyData> = vec![];
+        let name_list: Vec<T> = T::into_enum_iter().collect();
+        let data_list: Vec<Vec<MyData<T>>> = vec![];
         let counter = 0u32;
         Self {
-            cat,
-            dog,
+            name_list,
+            data_list,
             counter,
         }
     }
 }
 
-impl Database {
-    pub fn push(&mut self, data: Animal) {
+impl<T> Database<T> {
+    pub fn push(&mut self, data: T) {
         self.counter+=1;
-        match data {
+        for i in 0..self.name_list.len() {
+            //if self.name_list[i]==data {
+
+            //}
+        } 
+        /*match data {
             Animal::Cat(a) => self.cat.push(MyData{name:Animal::Cat(a), age:self.counter}),
             Animal::Dog(a) => self.dog.push(MyData{name:Animal::Cat(a), age:self.counter}),
-        }
+        }*/
     }
-    pub fn pop(&mut self) -> Option<Animal> {
+    /*pub fn pop(&mut self) -> Option<Animal> {
         let test_cat = self.cat.len()>0;
         let test_dog = self.dog.len()>0;
         if test_cat && test_dog {
@@ -90,10 +106,9 @@ impl Database {
         else {
             return Option::None;
         }
-    }
+    }*/
     pub fn clear(&mut self) {
-        self.cat.clear();
-        self.dog.clear();
+        self.data_list.clear();
         self.counter = 0;
     }
 }

@@ -2,12 +2,12 @@
 
 mod lib;
 use lib::{Database,Animal::*};
-use lib::*;
 
 use enum_iterator::IntoEnumIterator; // enum-iterator = "0.7.0"
-#[derive(Debug, IntoEnumIterator, PartialEq)]
+
+#[derive(Debug, Clone, IntoEnumIterator, PartialEq)]
 enum Day { 
-    Monday = 1, 
+    Monday = 10, 
     Tuesday, 
     Wednesday, 
     Thursday, 
@@ -18,29 +18,26 @@ enum Day {
 
 
 fn main() {
+    println!("ANIMAL:");
     let mut shelter = Database::default();
-    shelter.push(Cat("Barsik"));
-    shelter.push(Cat("Mursik"));
-    shelter.push(Dog("Mukhtar"));
+    shelter.push(Cat,"Barsik");
+    shelter.push(Cat,"Mursik");
+    shelter.push(Dog,"Mukhtar");
     println!("pop: {}",shelter.pop().unwrap());
-    println!("cat: {}",shelter.pop_cat().unwrap());
-    println!("dog: {}",shelter.pop_dog().unwrap());
+    println!("cat: {}",shelter.pop_certain(Cat).unwrap());
+    println!("dog: {}",shelter.pop_certain(Dog).unwrap());
     shelter.clear();
 
-    let t:Vec<Day> = Day::into_enum_iter().collect();
-    let e = Day;
+    println!("DAY:");
+    let mut shelter_1 = Database::default();
+    shelter_1.push(Day::Monday,"Barsik");
+    shelter_1.push(Day::Monday,"Mursik");
+    shelter_1.push(Day::Tuesday,"Mukhtar");
+    println!("pop: {}",shelter_1.pop().unwrap());
+    println!("mon: {}",shelter_1.pop_certain(Day::Monday).unwrap());
+    println!("tue: {}",shelter_1.pop_certain(Day::Tuesday).unwrap());
+     shelter_1.clear();
 
-    if t[0]==Day::Monday {
-        println!("!");
-    }
-
-    for i in t {
-        println!("{:?}",i);
-    }
-
-    println!("{:?}",Day::into_enum_iter().next().unwrap());
-    println!("{:?}",Day::VARIANT_COUNT);
-    println!("{:?}",Day::into_enum_iter().last().unwrap());
 }
 
 

@@ -108,6 +108,8 @@ impl DataBase {
         let next = old_offset + len;
         let next_pos = new_pos - old_pos;
 
+        println!("{} {} {}", old_offset, next, next_pos);
+
         for i in old_offset..next {
             let t = self.array[i+next_pos];
             self.array[i+next_pos] = self.array[i];

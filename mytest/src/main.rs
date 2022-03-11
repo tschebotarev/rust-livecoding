@@ -1,9 +1,7 @@
 use std::ops::{Add, Sub};
 use rand::Rng;
 
-//const PAGE_SIZE:usize = 8196;
-const PAGE_SIZE:usize = 50;
-
+const PAGE_SIZE:usize = 50; // 8196;
 
 #[derive(Clone, Copy)]
 struct BackwardOffset(u16);
@@ -11,18 +9,10 @@ struct BackwardOffset(u16);
 #[derive(Clone, Copy)]
 struct Length(u16);
 
-
-// impl From<BackwardOffset> for usize {
-//     fn from(item: BackwardOffset) -> Self {
-//         let dist: usize = item.0.into();
-//         PAGE_SIZE - dist
-//     }
-// }
-
 impl From<BackwardOffset> for usize {
     fn from(item: BackwardOffset) -> Self {
         let dist: usize = item.0.into();
-        PAGE_SIZE - dist
+        PAGE_SIZE - dist - 1
     }
 }
 
@@ -42,20 +32,29 @@ impl Add<Length> for BackwardOffset {
     }
 }
 
-// impl Add<BackwardOffset> for BackwardOffset {
-//     type Output = usize;
-//     fn add(self, rhs: BackwardOffset) -> Self::Output {
-//         (self.0 + rhs.0) as usize
-//     }
-// }
-
 impl Sub<BackwardOffset> for BackwardOffset {
-    type Output = usize;
+    type Output = i8;
     fn sub(self, rhs: BackwardOffset) -> Self::Output {
-        (self.0 - rhs.0) as usize 
+        ((self.0 - rhs.0 > 0) as i8) * 2 - 1 // as usize 
     }
 
 }
+
+impl Add<BackwardOffset> for usize {
+    type Output = usize;
+
+    fn add(self, rhs: BackwardOffset) -> Self::Output {
+        self + PAGE_SIZE - 1 - rhs.0 as usize
+    }
+
+}
+
+// impl Add<i8> for usize {
+//     type Output = usize;
+//     fn add(self, rhs: i8) -> Self::Output {
+//         (self as i8 - rhs) as usize
+//     }
+// }
 
 
 #[derive(Clone)]
@@ -101,19 +100,35 @@ impl DataBase {
         //     new_pos: BackwardOffset,
         //     len: Length,
         // )
-
         
         let old_offset:usize = old_pos.into();
-    
         let next = old_offset + len;
-        let next_pos = new_pos - old_pos;
+        let next_pos:usize = new_pos.into();
 
-        println!("{} {} {}", old_offset, next, next_pos);
+        // clone
+        let save = self.array[old_offset..next].to_vec();
 
-        for i in old_offset..next {
-            let t = self.array[i+next_pos];
-            self.array[i+next_pos] = self.array[i];
-            self.array[i] = t;
+        // move
+        if old_offset<next_pos {
+            for i in old_offset..next_pos {
+                self.array[i] = self.array[i+len];
+            }
+        }
+        else {
+            let mut i = old_offset-1;
+            while i!=next_pos-1 {
+                self.array[i+len] = self.array[i];
+                i-=1;
+            }
+        }
+
+        // for i in 3..1 {
+        //     println!("{}",i);
+        // }
+
+        // add
+        for i in 0..save.len() {
+            self.array[i+new_pos] = save[i];
         }
     } 
 }
@@ -134,7 +149,7 @@ fn main() {
     data.remove(PAGE_SIZE);
     data.print();
     print!("move data in array:          ");
-    data.move_row(BackwardOffset(3), BackwardOffset(4), Length(2));
+    data.move_row(BackwardOffset(2), BackwardOffset(5), Length(2));
     data.print();
 
 }
